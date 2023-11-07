@@ -1,0 +1,92 @@
+/* Estilos generales */
+.chat-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.chat-title {
+  font-size: 24px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* Estilos de los mensajes */
+.chat-messages ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.message {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+}
+
+.message-sender {
+  font-weight: bold;
+}
+
+.sent {
+  background-color: #0074e4;
+  color: white;
+  text-align: right;
+  align-self: flex-end;
+}
+
+.received {
+  background-color: #f0f0f0;
+  color: black;
+  text-align: left;
+  align-self: flex-start;
+}
+
+/* Estilos de la entrada de mensajes y formulario de nombre de usuario */
+.chat-input form {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.chat-input input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.username-form {
+  display: flex;
+  align-items: center;
+}
+
+.username-form input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.username-form button {
+  background-color: #0074e4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+/* Estilos del indicador de escritura */
+.typing-indicator {
+  margin-top: 10px;
+  color: #888;
+  font-style: italic;
+  text-align: left;
+}
