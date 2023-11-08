@@ -1,121 +1,96 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import io from "socket.io-client";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const socket = io("/");
 
-export default function App() {
+function App() {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [typingUsers, setTypingUsers] = useState([]);
   const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState(""); // Nuevo estado para el nombre completo
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
+    const receiveMessage = (message) => {
+      setMessages((state) => [message, ...state]);
+    };
+
+    const userTyping = (username) => {
+      setTyping(`${username} está escribiendo...`);
+    };
+
+    const userStoppedTyping = () => {
+      setTyping(false);
+    };
+
     socket.on("message", receiveMessage);
-    socket.on("userTyping", handleUserTyping);
+    socket.on("typing", userTyping);
+    socket.on("stop typing", userStoppedTyping);
 
     return () => {
       socket.off("message", receiveMessage);
-      socket.off("userTyping", handleUserTyping);
+      socket.off("typing", userTyping);
+      socket.off("stop typing", userStoppedTyping);
     };
   }, []);
 
-  const receiveMessage = (newMessage) => {
-    setMessages((prevMessages) => [newMessage, ...prevMessages]);
-    setTypingUsers([]);
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+    socket.emit("typing", username);
   };
 
-  const handleUserTyping = (data) => {
-    if (!typingUsers.includes(data.username)) {
-      setTypingUsers((prevUsers) => [...prevUsers, data.username]);
-    }
-  };
-
-  const emitTypingEvent = () => {
-    if (!message) {
-      socket.emit("typing", { username });
-    }
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      if (username) {
-        handleSubmit(event);
-      } else {
-        handleSetUsername();
-      }
-    } else {
-      emitTypingEvent();
-    }
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
     const newMessage = {
       body: message,
-      from: fullName || "Anónimo", // Usar el nombre completo si está disponible
+      from: username || "Anónimo",
     };
-    setMessages((prevMessages) => [newMessage, ...prevMessages]);
+    setMessages((state) => [newMessage, ...state]);
     setMessage("");
-    socket.emit("message", newMessage.body);
-  };
-
-  const handleSetUsername = () => {
-    if (username) {
-      socket.emit("setUsername", username);
-      setFullName(username); // Establecer el nombre completo al unirse
-    }
+    socket.emit("message", newMessage);
+    socket.emit("stop typing");
   };
 
   return (
-    <div className="chat-container">
-      <div className="chat-header">
-        <h1 className="chat-title">tuChat</h1>
-      </div>
-      <div className="chat-messages">
-        <ul>
-          {messages.map((msg, index) => (
+    <div className="h-screen bg-blue-800 text-white flex items-center justify-center p-5">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-blue-900 p-10 rounded-lg shadow-lg"
+      >
+        <h1 className="text-2xl font-bold my-2">tuChat</h1>
+        <input
+          name="username"
+          type="text"
+          placeholder="Enter your username..."
+          onChange={(e) => setUsername(e.target.value)}
+          className="border-2 border-zinc-500 p-2 w-full text-black rounded-md mb-2"
+          value={username}
+        />
+        <input
+          name="message"
+          type="text"
+          placeholder="Write your message..."
+          onChange={handleInputChange}
+          className="border-2 border-zinc-500 p-2 w-full text-black rounded-md"
+          value={message}
+          autoFocus
+        />
+
+        <ul className="h-80 overflow-y-auto mt-5 space-y-2">
+          {messages.map((message, index) => (
             <li
               key={index}
-              className={`message ${
-                msg.from === fullName ? "sent" : "received"
+              className={`my-2 p-2 table text-sm rounded-md shadow-md ${
+                message.from === username ? "bg-sky-700 ml-auto" : "bg-black"
               }`}
             >
-              <span className="message-sender">{msg.from}:</span> {msg.body}
+              <b>{message.from}</b>: {message.body}
             </li>
           ))}
         </ul>
-      </div>
-      <div className="chat-input">
-        {username ? (
-          <form onSubmit={handleSubmit}>
-            <input
-              name="message"
-              type="text"
-              placeholder="Escribe tu mensaje..."
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              value={message}
-            />
-          </form>
-        ) : (
-          <div className="username-form">
-            <input
-              type="text"
-              placeholder="Ingresa tu nombre de usuario"
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <button onClick={handleSetUsername}>Ingresar</button>
-          </div>
-        )}
-        {typingUsers.length > 0 && (
-          <div className="typing-indicator">
-            {typingUsers.join(", ")}{" "}
-            {typingUsers.length === 1 ? "está" : "están"} escribiendo...
-          </div>
-        )}
-      </div>
+        {typing && <p>{typing}</p>}
+      </form>
     </div>
   );
 }
+
+export default App;
